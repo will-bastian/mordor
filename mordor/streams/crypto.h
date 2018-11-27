@@ -71,7 +71,7 @@ private:
     Direction m_dir;
     Operation m_op;
     Buffer m_buf, m_tmp;
-    EVP_CIPHER_CTX m_ctx;
+    EVP_CIPHER_CTX *m_ctx;
     int m_blocksize;
     bool m_eof;
     size_t m_iv_to_extract;

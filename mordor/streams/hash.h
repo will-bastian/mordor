@@ -56,11 +56,11 @@ struct HashOps<SHA0>
     typedef SHA_CTX ctx_type;
 
     static int init(ctx_type *ctx)
-    { return SHA_Init(ctx); }
+    { return SHA1_Init(ctx); }
     static int update(ctx_type *ctx, const void *data, size_t len)
-    { return SHA_Update(ctx, data, len); }
+    { return SHA1_Update(ctx, data, len); }
     static int final(unsigned char *md, ctx_type *ctx)
-    { return SHA_Final(md, ctx); }
+    { return SHA1_Final(md, ctx); }
     static size_t digestLength() { return SHA_DIGEST_LENGTH; }
 };
 #endif

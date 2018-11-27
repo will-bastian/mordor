@@ -25,17 +25,17 @@ CryptoStream::CryptoStream(Stream::ptr p, const EVP_CIPHER *cipher, const std::s
     if (m_op == AUTO) {
         m_op = (m_dir == WRITE) ? ENCRYPT : DECRYPT;
     }
-    EVP_CIPHER_CTX_init(&m_ctx);
+    m_ctx = EVP_CIPHER_CTX_new();
+    EVP_CIPHER_CTX_init(m_ctx);
     try
     {
         // do preliminary initialization (everything except the IV)
-        SSL_CHECK( EVP_CipherInit_ex(&m_ctx, cipher, NULL, NULL, NULL, (m_op == ENCRYPT) ? 1 : 0) );
-        SSL_CHECK( EVP_CIPHER_CTX_set_key_length(&m_ctx, static_cast<int>(key.size())) );
-        SSL_CHECK( EVP_CipherInit_ex(&m_ctx, NULL, NULL, (const unsigned char *)key.c_str(), NULL, -1) );
-        m_blocksize = EVP_CIPHER_CTX_block_size(&m_ctx);
-
+        SSL_CHECK( EVP_CipherInit_ex(m_ctx, cipher, NULL, NULL, NULL, (m_op == ENCRYPT) ? 1 : 0) );
+        SSL_CHECK( EVP_CIPHER_CTX_set_key_length(m_ctx, static_cast<int>(key.size())) );
+        SSL_CHECK( EVP_CipherInit_ex(m_ctx, NULL, NULL, (const unsigned char *)key.c_str(), NULL, -1) );
+        m_blocksize = EVP_CIPHER_CTX_block_size(m_ctx);
         // generate an IV, if necessary
-        size_t iv_len = static_cast<size_t>(EVP_CIPHER_CTX_iv_length(&m_ctx));
+        size_t iv_len = static_cast<size_t>(EVP_CIPHER_CTX_iv_length(m_ctx));
         if (&iv == &RANDOM_IV) {
             if (m_op == ENCRYPT) {
                 RandomStream random;
@@ -56,7 +56,8 @@ CryptoStream::CryptoStream(Stream::ptr p, const EVP_CIPHER *cipher, const std::s
     }
     catch(...)
     {
-        EVP_CIPHER_CTX_cleanup(&m_ctx);
+        EVP_CIPHER_CTX_cleanup(m_ctx);
+        EVP_CIPHER_CTX_free(m_ctx);
         throw;
     }
 }
@@ -68,11 +69,11 @@ void CryptoStream::init_iv()
 
     if (!m_iv.empty()) {
         // make sure the size is correct
-        if (static_cast<size_t>(EVP_CIPHER_CTX_iv_length(&m_ctx)) != m_iv.size())
+        if (static_cast<size_t>(EVP_CIPHER_CTX_iv_length(m_ctx)) != m_iv.size())
             MORDOR_THROW_EXCEPTION(OpenSSLException("incorrect iv length"));
 
         // feed openssl the IV
-        SSL_CHECK( EVP_CipherInit_ex(&m_ctx, NULL, NULL, NULL, (const unsigned char *)m_iv.c_str(), -1) );
+        SSL_CHECK( EVP_CipherInit_ex(m_ctx, NULL, NULL, NULL, (const unsigned char *)m_iv.c_str(), -1) );
 
         // clear data we don't need anymore
         m_iv.clear();
@@ -81,7 +82,8 @@ void CryptoStream::init_iv()
 
 CryptoStream::~CryptoStream()
 {
-    EVP_CIPHER_CTX_cleanup(&m_ctx);
+    EVP_CIPHER_CTX_cleanup(m_ctx);
+    EVP_CIPHER_CTX_free(m_ctx);
 }
 
 void CryptoStream::close(CloseType type)
@@ -159,7 +161,7 @@ size_t CryptoStream::cipher(const Buffer &src, Buffer &dst, size_t len, size_t s
     if (len == 0)
         return 0;
     int outlen = static_cast<int>(len) + m_blocksize;
-    SSL_CHECK(EVP_CipherUpdate(&m_ctx,
+    SSL_CHECK(EVP_CipherUpdate(m_ctx,
         (unsigned char *)dst.writeBuffer(len + m_blocksize, true).iov_base, &outlen,
         (unsigned char *)src.readBuffer(len + skip, true).iov_base + skip, static_cast<int>(len)));
     dst.produce(outlen);
@@ -170,7 +172,7 @@ size_t CryptoStream::cipher(const Buffer &src, Buffer &dst, size_t len, size_t s
 size_t CryptoStream::final(Buffer &dst)
 {
     int outlen = m_blocksize;
-    SSL_CHECK(EVP_CipherFinal(&m_ctx,
+    SSL_CHECK(EVP_CipherFinal(m_ctx,
         (unsigned char *)dst.writeBuffer(m_blocksize, true).iov_base, &outlen));
     dst.produce(outlen);
     return outlen;
@@ -201,7 +203,7 @@ size_t CryptoStream::write(const Buffer &buffer, size_t len)
         if (m_iv_to_extract > 0)
             return len; // don't have the whole IV yet
         // now we have an IV, so we can initialize the cipher
-        size_t iv_len = static_cast<size_t>(EVP_CIPHER_CTX_iv_length(&m_ctx));
+        size_t iv_len = static_cast<size_t>(EVP_CIPHER_CTX_iv_length(m_ctx));
         MORDOR_ASSERT(m_buf.readAvailable() == iv_len);
         m_iv.assign((char *)m_buf.readBuffer(iv_len, true).iov_base, iv_len);
         m_buf.clear();

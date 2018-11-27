@@ -34,7 +34,7 @@ MORDOR_UNITTEST(SHA0Stream, empty)
     MORDOR_TEST_ASSERT_EQUAL(hashStream->hashSize(), (size_t)SHA_DIGEST_LENGTH);
     std::string hexHash = hexstringFromData(hashStream->hash());
     MORDOR_TEST_ASSERT_EQUAL(hexHash,
-        std::string("f96cea198ad1dd5617ac084a3d92c6107708c0ef"));
+        std::string("da39a3ee5e6b4b0d3255bfef95601890afd80709"));
 }
 
 MORDOR_UNITTEST(SHA0Stream, knownSha0)
@@ -44,7 +44,7 @@ MORDOR_UNITTEST(SHA0Stream, knownSha0)
     hashStream->write(data, data.size());
     std::string hexHash = hexstringFromData(hashStream->hash());
     MORDOR_TEST_ASSERT_EQUAL(hexHash,
-        std::string("b03b401ba92d77666221e843feebf8c561cea5f7"));
+        std::string("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12"));
 }
 #endif
 

@@ -23,9 +23,9 @@ MORDOR_UNITTEST(String, dataFromHexstring)
 
 MORDOR_UNITTEST(String, sha0sum)
 {
-    MORDOR_TEST_ASSERT_EQUAL(hexstringFromData(sha0sum("")), "f96cea198ad1dd5617ac084a3d92c6107708c0ef");
-    MORDOR_TEST_ASSERT_EQUAL(hexstringFromData(sha0sum("1234567890")), "786abc00fc4c0ab7ea5f0f2bd85fb9ab00c2ad82");
-    MORDOR_TEST_ASSERT_EQUAL(hexstringFromData(sha0sum((const void *)"\x7e\x54\xe4\xbc\x27\x00\x40\xab", 8)), "ea1d7982eb4c6201498ece16539ce174735b6a21");
+    MORDOR_TEST_ASSERT_EQUAL(hexstringFromData(sha0sum("")), "da39a3ee5e6b4b0d3255bfef95601890afd80709");
+    MORDOR_TEST_ASSERT_EQUAL(hexstringFromData(sha0sum("1234567890")), "01b307acba4f54f55aafc33bb06bbbf6ca803e9a");
+    MORDOR_TEST_ASSERT_EQUAL(hexstringFromData(sha0sum((const void *)"\x7e\x54\xe4\xbc\x27\x00\x40\xab", 8)), "f3ac229ecb812dc70a45bb901de053ffea00d773");
 }
 
 MORDOR_UNITTEST(String, validateUtf8)
