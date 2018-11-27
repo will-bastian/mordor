@@ -88,7 +88,7 @@ static void mkcert(boost::shared_ptr<X509> &cert,
                   boost::shared_ptr<EVP_PKEY> &pkey, int bits, int serial,
                   int days)
 {
-    RSA *rsa;
+    RSA *rsa = RSA_new();
     X509_NAME *name=NULL;
 
     pkey.reset(EVP_PKEY_new(), &EVP_PKEY_free);
@@ -98,8 +98,13 @@ static void mkcert(boost::shared_ptr<X509> &cert,
     if (!cert)
         throw std::bad_alloc();
 
-    rsa = RSA_generate_key(bits,RSA_F4,NULL,NULL);
+    BIGNUM *e;
+    e = BN_new();
+    BN_set_word(e, RSA_F4);
+    RSA_generate_key_ex(rsa, bits, e, NULL);
     MORDOR_VERIFY(EVP_PKEY_assign_RSA(pkey.get(),rsa));
+    BN_free(e);
+    e = NULL;
 
     X509_set_version(cert.get(),2);
     ASN1_INTEGER_set(X509_get_serialNumber(cert.get()),serial);
