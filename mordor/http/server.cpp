@@ -145,7 +145,7 @@ ServerConnection::responseComplete(ServerRequest *request)
         boost::recursive_mutex::scoped_lock lock(m_mutex);
         invariant();
         MORDOR_ASSERT(request->m_responseState == ServerRequest::HEADERS ||
-            ServerRequest::BODY);
+                      request->m_responseState == ServerRequest::BODY);
         MORDOR_ASSERT(!m_pendingRequests.empty());
         MORDOR_LOG_TRACE(g_log) << request->context() << " response complete";
         std::list<ServerRequest *>::iterator it = m_pendingRequests.begin();
